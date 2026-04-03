@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Selam AI — Tigrinya Chatbot</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#05080F;--surface:#080D18;--card:#0C1422;--card2:#101928;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
+  --green:#00E676;--green2:#00C853;--green3:#69F0AE;
+  --green-glow:rgba(0,230,118,0.15);--green-dim:rgba(0,230,118,0.08);
+  --gold:#FFB300;--gold2:#FFCA28;--gold-dim:rgba(255,179,0,0.08);
+  --blue:#2979FF;--red:#FF1744;--text:#EEF2F7;--text2:#B8C5D6;
+  --muted:#4E6175;--muted2:#2D3D4F;
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;position:relative;}
+
+/* BACKGROUND */
+.bg-canvas{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(80px);animation:orbFloat 8s ease-in-out infinite;}
+.orb1{width:400px;height:400px;top:-100px;left:-100px;background:rgba(0,230,118,0.05);animation-delay:0s;}
+.orb2{width:300px;height:300px;bottom:-50px;right:-80px;background:rgba(255,179,0,0.04);animation-delay:3s;}
+.orb3{width:250px;height:250px;top:40%;left:60%;background:rgba(41,121,255,0.03);animation-delay:5s;}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(20px,-20px) scale(1.05);}66%{transform:translate(-15px,15px) scale(0.95);}}
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(0,230,118,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,230,118,0.02) 1px,transparent 1px);background-size:40px 40px;}
+#pCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.5;}
+
+/* HEADER */
+.header{position:relative;z-index:100;flex-shrink:0;background:rgba(8,13,24,0.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2);overflow:hidden;}
+.header::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,230,118,0.02) 0%,transparent 50%,rgba(255,179,0,0.02) 100%);pointer-events:none;}
+.flag-bar{display:flex;height:3px;}
+.fb-g{flex:1;background:linear-gradient(90deg,#00A651,#00E676);}
+.fb-gd{flex:0 0 6px;background:var(--gold);}
+.fb-b{flex:1;background:linear-gradient(90deg,#1565C0,#2979FF);}
+.fb-bd{flex:0 0 6px;background:var(--gold);}
+.fb-r{flex:1;background:linear-gradient(90deg,#B71C1C,#FF1744);}
+.header-inner{display:flex;align-items:center;gap:14px;padding:1rem 1.25rem;position:relative;z-index:1;}
+.avatar-wrap{position:relative;flex-shrink:0;}
+.bot-avatar{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,rgba(0,230,118,0.18),rgba(255,179,0,0.1));border:1px solid rgba(0,230,118,0.25);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 24px rgba(0,230,118,0.12),inset 0 1px 0 rgba(255,255,255,0.08);}
+.avatar-ring{position:absolute;inset:-4px;border-radius:20px;border:1px solid rgba(0,230,118,0.15);animation:ringPulse 2s ease-in-out infinite;}
+@keyframes ringPulse{0%,100%{opacity:0.3;transform:scale(1);}50%{opacity:0.8;transform:scale(1.04);}}
+.online-dot{position:absolute;bottom:-1px;right:-1px;width:12px;height:12px;border-radius:50%;background:var(--green);border:2px solid var(--surface);box-shadow:0 0 8px var(--green);animation:dotPulse 2s infinite;}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 4px var(--green);}50%{box-shadow:0 0 14px var(--green),0 0 24px rgba(0,230,118,0.25);}}
+.header-text{flex:1;min-width:0;}
+.bot-name{font-size:16px;font-weight:800;background:linear-gradient(90deg,#00E676,#FFB300);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:0.5px;}
+.bot-sub{font-size:11px;color:var(--green);font-weight:500;margin-top:2px;letter-spacing:0.5px;opacity:0.8;}
+.bot-sub span{color:var(--muted);}
+.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.ai-badge{background:rgba(255,179,0,0.1);border:1px solid rgba(255,179,0,0.2);border-radius:8px;padding:5px 10px;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;box-shadow:0 0 12px rgba(255,179,0,0.06);}
+.clear-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.clear-btn:hover{border-color:rgba(255,23,68,0.4);color:var(--red);}
+
+/* API SECTION */
+.api-section{flex-shrink:0;position:relative;z-index:10;background:rgba(255,179,0,0.04);border-bottom:1px solid rgba(255,179,0,0.12);padding:0.65rem 1.25rem;display:flex;align-items:center;gap:10px;transition:all 0.3s;}
+.api-section.hidden{display:none;}
+.api-label{font-size:11px;font-weight:600;color:var(--gold);white-space:nowrap;letter-spacing:0.5px;}
+.api-input{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,179,0,0.15);border-radius:8px;padding:6px 12px;font-family:'Outfit',sans-serif;font-size:12px;color:var(--text);outline:none;transition:border-color 0.2s;}
+.api-input:focus{border-color:rgba(255,179,0,0.4);}
+.api-input::placeholder{color:var(--muted);}
+.api-btn{background:linear-gradient(135deg,var(--gold),#FF8F00);border:none;border-radius:8px;padding:6px 14px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;color:#0A0600;cursor:pointer;white-space:nowrap;transition:all 0.2s;box-shadow:0 0 12px rgba(255,179,0,0.2);}
+.api-btn:hover{box-shadow:0 0 22px rgba(255,179,0,0.4);transform:translateY(-1px);}
+
+/* MESSAGES */
+.messages{flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:16px;position:relative;z-index:1;scroll-behavior:smooth;}
+.messages::-webkit-scrollbar{width:3px;}
+.messages::-webkit-scrollbar-track{background:transparent;}
+.messages::-webkit-scrollbar-thumb{background:var(--muted2);border-radius:4px;}
+
+/* WELCOME */
+.welcome{text-align:center;padding:1.5rem 0.5rem;animation:welcomeIn 0.6s cubic-bezier(0.34,1.3,0.64,1);}
+@keyframes welcomeIn{from{opacity:0;transform:translateY(30px) scale(0.95);}to{opacity:1;transform:translateY(0) scale(1);}}
+.welcome-logo{width:90px;height:90px;border-radius:28px;background:linear-gradient(135deg,rgba(0,230,118,0.15),rgba(255,179,0,0.1));border:1px solid rgba(0,230,118,0.2);display:flex;align-items:center;justify-content:center;font-size:44px;margin:0 auto 1.25rem;box-shadow:0 0 40px rgba(0,230,118,0.12),0 0 80px rgba(0,230,118,0.04),inset 0 1px 0 rgba(255,255,255,0.08);animation:logoFloat 3s ease-in-out infinite;}
+@keyframes logoFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.welcome-title{font-size:1.8rem;font-weight:900;letter-spacing:-0.5px;background:linear-gradient(135deg,#00E676 0%,#FFB300 50%,#00E676 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 3s linear infinite;margin-bottom:0.4rem;}
+@keyframes shimmer{0%{background-position:0% center;}100%{background-position:200% center;}}
+.welcome-ti{font-family:'Noto Sans Ethiopic',sans-serif;font-size:1rem;font-weight:600;color:var(--green);margin-bottom:0.6rem;opacity:0.8;}
+.welcome-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:1.5rem;max-width:300px;margin-left:auto;margin-right:auto;}
+.suggestions{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.suggestion{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:0.8rem;cursor:pointer;transition:all 0.25s;text-align:left;position:relative;overflow:hidden;}
+.suggestion::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,230,118,0.06),transparent);opacity:0;transition:opacity 0.25s;}
+.suggestion:hover::before{opacity:1;}
+.suggestion:hover{border-color:rgba(0,230,118,0.3);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.25);}
+.sug-icon{font-size:18px;margin-bottom:5px;display:block;}
+.sug-label{font-size:10px;font-weight:700;color:var(--green);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+.sug-text{font-size:12px;color:var(--text2);line-height:1.4;font-weight:500;}
+
+/* MESSAGES */
+.msg{display:flex;gap:10px;animation:msgIn 0.35s cubic-bezier(0.34,1.2,0.64,1);}
+.msg.user{flex-direction:row-reverse;}
+@keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+.msg-av{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;align-self:flex-end;}
+.msg.bot .msg-av{background:linear-gradient(135deg,rgba(0,230,118,0.15),rgba(255,179,0,0.08));border:1px solid rgba(0,230,118,0.2);box-shadow:0 0 12px rgba(0,230,118,0.06);}
+.msg.user .msg-av{background:linear-gradient(135deg,rgba(41,121,255,0.2),rgba(124,77,255,0.15));border:1px solid rgba(41,121,255,0.2);}
+.msg-body{max-width:80%;display:flex;flex-direction:column;}
+.msg.user .msg-body{align-items:flex-end;}
+.msg-bubble{padding:0.9rem 1.1rem;border-radius:18px;font-size:14px;line-height:1.65;font-weight:400;position:relative;overflow:hidden;}
+.msg.bot .msg-bubble{background:var(--card2);border:1px solid var(--border2);border-bottom-left-radius:5px;box-shadow:0 4px 20px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.04);}
+.msg.bot .msg-bubble::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,rgba(0,230,118,0.4),transparent);}
+.msg.user .msg-bubble{background:linear-gradient(135deg,rgba(0,200,83,0.2),rgba(0,230,118,0.12));border:1px solid rgba(0,230,118,0.2);border-bottom-right-radius:5px;box-shadow:0 4px 20px rgba(0,230,118,0.06),inset 0 1px 0 rgba(255,255,255,0.06);}
+.ti-text{font-family:'Noto Sans Ethiopic','Outfit',sans-serif;font-size:15px;font-weight:600;background:linear-gradient(90deg,var(--green),var(--green3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-bottom:8px;line-height:1.9;}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:8px 0;}
+.en-text{font-size:13px;color:var(--text2);line-height:1.6;font-style:italic;}
+.msg-meta{display:flex;align-items:center;gap:6px;margin-top:5px;padding:0 2px;}
+.msg-time{font-size:10px;color:var(--muted);font-weight:500;}
+.msg-tick{font-size:10px;color:var(--green);opacity:0.6;}
+
+/* TYPING */
+.typing-wrap{display:flex;gap:10px;animation:msgIn 0.3s ease;}
+.typing-bubble{background:var(--card2);border:1px solid var(--border2);border-radius:18px;border-bottom-left-radius:5px;padding:0.9rem 1.2rem;display:flex;align-items:center;gap:5px;box-shadow:0 4px 20px rgba(0,0,0,0.25);}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:typingBounce 1.3s ease-in-out infinite;box-shadow:0 0 6px var(--green);}
+.typing-dot:nth-child(2){animation-delay:0.15s;}.typing-dot:nth-child(3){animation-delay:0.3s;}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:0.4;}30%{transform:translateY(-6px);opacity:1;}}
+
+/* QUICK REPLIES */
+.quick-wrap{flex-shrink:0;position:relative;z-index:10;padding:0.6rem 1.25rem;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;}
+.quick-wrap::-webkit-scrollbar{display:none;}
+.qr{flex-shrink:0;white-space:nowrap;padding:6px 14px;border-radius:999px;border:1px solid var(--border2);background:var(--card);font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;transition:all 0.2s;letter-spacing:0.3px;}
+.qr:hover{border-color:rgba(0,230,118,0.4);color:var(--green);background:var(--green-dim);box-shadow:0 0 12px rgba(0,230,118,0.06);}
+
+/* INPUT AREA */
+.input-area{flex-shrink:0;position:relative;z-index:10;background:rgba(8,13,24,0.96);backdrop-filter:blur(20px);border-top:1px solid var(--border2);padding:1rem 1.25rem;}
+.input-area::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,230,118,0.25),rgba(255,179,0,0.15),transparent);}
+.input-row{display:flex;gap:10px;align-items:flex-end;}
+.input-box{flex:1;position:relative;background:var(--card2);border:1px solid var(--border2);border-radius:18px;display:flex;align-items:flex-end;gap:8px;padding:0.75rem 1rem;transition:border-color 0.25s,box-shadow 0.25s;}
+.input-box:focus-within{border-color:rgba(0,230,118,0.35);box-shadow:0 0 0 3px rgba(0,230,118,0.05),0 0 20px rgba(0,230,118,0.04);}
+.chat-input{flex:1;background:transparent;border:none;outline:none;font-family:'Outfit',sans-serif;font-size:14px;color:var(--text);resize:none;max-height:100px;line-height:1.5;font-weight:400;}
+.chat-input::placeholder{color:var(--muted);}
+.lang-badge{font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 7px;border-radius:5px;background:var(--green-dim);color:var(--green);border:1px solid rgba(0,230,118,0.2);align-self:center;flex-shrink:0;transition:all 0.2s;font-family:'Outfit',sans-serif;}
+.lang-badge.ti{background:var(--gold-dim);color:var(--gold);border-color:rgba(255,179,0,0.2);}
+.send-btn{width:48px;height:48px;border-radius:16px;border:none;cursor:pointer;flex-shrink:0;background:linear-gradient(135deg,var(--green2),var(--green));display:flex;align-items:center;justify-content:center;font-size:20px;transition:all 0.25s;box-shadow:0 4px 20px rgba(0,200,83,0.3),0 0 0 1px rgba(0,230,118,0.15);position:relative;overflow:hidden;}
+.send-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);}
+.send-btn:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 8px 28px rgba(0,200,83,0.4);}
+.send-btn:active{transform:scale(0.96);}
+.send-btn:disabled{background:var(--muted2);box-shadow:none;cursor:not-allowed;transform:none;}
+.input-hint{font-size:10px;color:var(--muted);text-align:center;margin-top:0.5rem;letter-spacing:0.3px;font-weight:500;}
+.input-hint span{color:var(--green);opacity:0.7;}
+</style>
+</head>
+<body>
+
+<div class="bg-canvas">
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="bg-orb orb3"></div>
+</div>
+<div class="bg-grid"></div>
+<canvas id="pCanvas"></canvas>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="flag-bar">
+    <div class="fb-g"></div><div class="fb-gd"></div>
+    <div class="fb-b"></div><div class="fb-bd"></div>
+    <div class="fb-r"></div>
+  </div>
+  <div class="header-inner">
+    <div class="avatar-wrap">
+      <div class="bot-avatar">🇪🇷</div>
+      <div class="avatar-ring"></div>
+      <div class="online-dot"></div>
+    </div>
+    <div class="header-text">
+      <div class="bot-name">ሰላም AI · Selam AI</div>
+      <div class="bot-sub">● Online &amp; Ready <span>· Powered by Claude</span></div>
+    </div>
+    <div class="header-right">
+      <div class="ai-badge">🤖 AI</div>
+      <button class="clear-btn" onclick="clearChat()" title="Clear chat">🗑</button>
+    </div>
+  </div>
+</div>
+
+<!-- API KEY -->
+<div class="api-section" id="apiSection">
+  <span class="api-label">🔑 API Key</span>
+  <input class="api-input" type="password" id="apiKeyInput" placeholder="Paste your Anthropic API key to activate..."/>
+  <button class="api-btn" onclick="saveKey()">Activate ✓</button>
+</div>
+
+<!-- MESSAGES -->
+<div class="messages" id="messages">
+  <div class="welcome" id="welcomeScreen">
+    <div class="welcome-logo">🇪🇷</div>
+    <div class="welcome-title">Selam AI</div>
+    <div class="welcome-ti">ሰላም! ክሕግዘካ ድሉው እየ።</div>
+    <div class="welcome-desc">Your intelligent Eritrean AI companion. Ask me anything in English or Tigrinya — I always reply in both languages!</div>
+    <div class="suggestions">
+      <div class="suggestion" onclick="useSug(this)"><span class="sug-icon">🗣️</span><div class="sug-label">Language</div><div class="sug-text">How do I say "I love you" in Tigrinya?</div></div>
+      <div class="suggestion" onclick="useSug(this)"><span class="sug-icon">☕</span><div class="sug-label">Culture</div><div class="sug-text">Tell me about Eritrean coffee ceremony</div></div>
+      <div class="suggestion" onclick="useSug(this)"><span class="sug-icon">🏛️</span><div class="sug-label">History</div><div class="sug-text">When did Eritrea gain independence?</div></div>
+      <div class="suggestion" onclick="useSug(this)"><span class="sug-icon">🍽️</span><div class="sug-label">Food</div><div class="sug-text">What are traditional Eritrean dishes?</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK REPLIES -->
+<div class="quick-wrap">
+  <button class="qr" onclick="useSug(this)">Teach me Tigrinya greetings</button>
+  <button class="qr" onclick="useSug(this)">Tell me an Eritrean proverb</button>
+  <button class="qr" onclick="useSug(this)">Tigrinya numbers 1–10</button>
+  <button class="qr" onclick="useSug(this)">Famous Eritrean musicians</button>
+  <button class="qr" onclick="useSug(this)">What is injera?</button>
+  <button class="qr" onclick="useSug(this)">Eritrean traditional clothing</button>
+  <button class="qr" onclick="useSug(this)">Capital city of Eritrea</button>
+</div>
+
+<!-- INPUT -->
+<div class="input-area">
+  <div class="input-row">
+    <div class="input-box">
+      <textarea class="chat-input" id="chatInput" placeholder="Ask anything in English or ትግርኛ..." rows="1"
+        onkeydown="handleKey(event)" oninput="onInput(this)"></textarea>
+      <span class="lang-badge" id="langBadge">EN</span>
+    </div>
+    <button class="send-btn" id="sendBtn" onclick="send()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="position:relative;z-index:1;">
+        <path d="M22 2L11 13" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+  <div class="input-hint">Press <span>Enter</span> to send · <span>Shift+Enter</span> for new line</div>
+</div>
+
+<script>
+// Particles
+const canvas = document.getElementById('pCanvas');
+const ctx = canvas.getContext('2d');
+let pts = [];
+function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+resize(); window.addEventListener('resize',resize);
+for(let i=0;i<55;i++) pts.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,r:Math.random()*1.5+0.3,dx:(Math.random()-0.5)*0.25,dy:-Math.random()*0.35-0.08,a:Math.random()*0.5+0.1,c:Math.random()>0.5?'0,230,118':'255,179,0'});
+(function tick(){ctx.clearRect(0,0,canvas.width,canvas.height);pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${p.c},${p.a})`;ctx.fill();p.x+=p.dx;p.y+=p.dy;if(p.y<-5){p.y=canvas.height+5;p.x=Math.random()*canvas.width;}if(p.x<-5)p.x=canvas.width+5;if(p.x>canvas.width+5)p.x=-5;});requestAnimationFrame(tick);})();
+
+// Chat
+let apiKey=localStorage.getItem('selamai_k')||'';
+let history=[];
+let busy=false;
+const SYS=`You are Selam AI, a warm, intelligent, culturally proud Eritrean AI assistant. You specialize in Tigrinya language, Eritrean culture, history, geography, food, traditions, music, sports, and everyday topics.
+
+STRICT RULES — no exceptions:
+1. ALWAYS respond in BOTH Tigrinya (Ge'ez script) AND English.
+2. EVERY response must follow this exact format:
+
+[Tigrinya response in Ge'ez script]
+
+---
+
+[English response/translation]
+
+3. Keep responses concise: 2–4 sentences per language.
+4. Be warm, friendly, and respectful of Eritrean culture.
+5. For language questions: include Ge'ez script AND pronunciation guide in parentheses.
+6. Show genuine pride in Eritrean heritage.`;
+
+if(apiKey) document.getElementById('apiSection').classList.add('hidden');
+
+function saveKey(){
+  const k=document.getElementById('apiKeyInput').value.trim();
+  if(!k)return;
+  apiKey=k; localStorage.setItem('selamai_k',k);
+  document.getElementById('apiSection').classList.add('hidden');
+  addBot('ሰላም! ብደሓን ምጻእ ናብ ሰላም AI!\n\n---\n\nWelcome! Selam AI is now fully activated! Ask me anything about Eritrea, Tigrinya, culture, history, food, or anything else. ሰናይ ሕቶ! (Ask away!)');
+}
+function onInput(el){
+  el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px';
+  const ti=/[\u1200-\u137F]/.test(el.value);
+  const b=document.getElementById('langBadge');
+  b.textContent=ti?'ትግ':'EN'; b.className='lang-badge'+(ti?' ti':'');
+}
+function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} }
+function useSug(el){
+  const t=(el.querySelector('.sug-text')||el).textContent.trim();
+  document.getElementById('chatInput').value=t; send();
+}
+function now(){ return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+function hideWelcome(){ const w=document.getElementById('welcomeScreen'); if(w){w.style.transition='opacity 0.2s';w.style.opacity='0';setTimeout(()=>w.remove(),200);} }
+function scroll(){ const m=document.getElementById('messages'); setTimeout(()=>m.scrollTo({top:m.scrollHeight,behavior:'smooth'}),60); }
+
+function addUser(text){
+  hideWelcome();
+  const m=document.getElementById('messages');
+  const d=document.createElement('div'); d.className='msg user';
+  d.innerHTML=`<div class="msg-av">👤</div><div class="msg-body"><div class="msg-bubble">${esc(text)}</div><div class="msg-meta"><span class="msg-time">${now()}</span><span class="msg-tick">✓✓</span></div></div>`;
+  m.appendChild(d); scroll();
+}
+function addTyping(){
+  const m=document.getElementById('messages');
+  const d=document.createElement('div'); d.className='typing-wrap'; d.id='tEl';
+  d.innerHTML=`<div class="msg-av" style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,rgba(0,230,118,0.15),rgba(255,179,0,0.08));border:1px solid rgba(0,230,118,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;">🇪🇷</div><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  m.appendChild(d); scroll();
+}
+function removeTyping(){ const t=document.getElementById('tEl'); if(t)t.remove(); }
+function addBot(text){
+  const m=document.getElementById('messages');
+  const d=document.createElement('div'); d.className='msg bot';
+  let bubble='';
+  if(text.includes('---')){
+    const p=text.split('---'); const ti=p[0].trim(); const en=p.slice(1).join('---').trim();
+    bubble=`<span class="ti-text">${esc(ti)}</span><div class="divider"></div><span class="en-text">${esc(en)}</span>`;
+  } else { bubble=esc(text); }
+  d.innerHTML=`<div class="msg-av">🇪🇷</div><div class="msg-body"><div class="msg-bubble">${bubble}</div><div class="msg-meta"><span class="msg-time">${now()}</span></div></div>`;
+  m.appendChild(d); scroll();
+}
+function clearChat(){
+  history=[]; const m=document.getElementById('messages'); m.innerHTML='';
+  const w=document.createElement('div'); w.className='welcome'; w.id='welcomeScreen';
+  w.innerHTML=`<div class="welcome-logo">🇪🇷</div><div class="welcome-title">Selam AI</div><div class="welcome-ti">ሰላም! ክሕግዘካ ድሉው እየ።</div><div class="welcome-desc">Your intelligent Eritrean AI companion. Ask me anything in English or Tigrinya!</div><div class="suggestions"><div class="suggestion" onclick="useSug(this)"><span class="sug-icon">🗣️</span><div class="sug-label">Language</div><div class="sug-text">How do I say "I love you" in Tigrinya?</div></div><div class="suggestion" onclick="useSug(this)"><span class="sug-icon">☕</span><div class="sug-label">Culture</div><div class="sug-text">Tell me about Eritrean coffee ceremony</div></div><div class="suggestion" onclick="useSug(this)"><span class="sug-icon">🏛️</span><div class="sug-label">History</div><div class="sug-text">When did Eritrea gain independence?</div></div><div class="suggestion" onclick="useSug(this)"><span class="sug-icon">🍽️</span><div class="sug-label">Food</div><div class="sug-text">What are traditional Eritrean dishes?</div></div></div>`;
+  m.appendChild(w);
+}
+async function send(){
+  if(busy)return;
+  const inp=document.getElementById('chatInput');
+  const text=inp.value.trim(); if(!text)return;
+  if(!apiKey){ document.getElementById('apiSection').classList.remove('hidden'); document.getElementById('apiKeyInput').focus(); return; }
+  inp.value=''; inp.style.height='auto';
+  document.getElementById('langBadge').textContent='EN';
+  document.getElementById('langBadge').className='lang-badge';
+  addUser(text); history.push({role:'user',content:text});
+  busy=true; document.getElementById('sendBtn').disabled=true; addTyping();
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1024,system:SYS,messages:history})});
+    const data=await res.json(); removeTyping();
+    if(data.error){ addBot('ጌጋ ኣጋጢሙ\n\n---\n\nError: '+(data.error.message||'Check your API key and try again.')); history.pop(); }
+    else{ const r=data.content[0].text; addBot(r); history.push({role:'assistant',content:r}); if(history.length>24)history=history.slice(-24); }
+  }catch(e){ removeTyping(); addBot('ምትእስሳር ሰናይ ኣይኮነን\n\n---\n\nConnection error. Please check your internet and API key, then try again.'); history.pop(); }
+  busy=false; document.getElementById('sendBtn').disabled=false; inp.focus();
+}
+</script>
+</body>
+</html>
