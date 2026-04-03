@@ -257,6 +257,8 @@ STRICT RULES — no exceptions:
 5. For language questions: include Ge'ez script AND pronunciation guide in parentheses.
 6. Show genuine pride in Eritrean heritage.`;
 
+// Clear old Anthropic key (starts with sk-ant) — it won't work with Google
+if(apiKey && !apiKey.startsWith('AIza')){ apiKey=''; localStorage.removeItem('selamai_g'); }
 if(apiKey) document.getElementById('apiSection').classList.add('hidden');
 
 function saveKey(){
