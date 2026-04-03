@@ -165,7 +165,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);disp
     </div>
     <div class="header-text">
       <div class="bot-name">ሰላም AI · Selam AI</div>
-      <div class="bot-sub">● Online &amp; Ready <span>· Powered by Claude</span></div>
+      <div class="bot-sub">● Online &amp; Ready <span>· Powered by Google Gemini</span></div>
     </div>
     <div class="header-right">
       <div class="ai-badge">🤖 AI</div>
@@ -176,8 +176,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);disp
 
 <!-- API KEY -->
 <div class="api-section" id="apiSection">
-  <span class="api-label">🔑 API Key</span>
-  <input class="api-input" type="password" id="apiKeyInput" placeholder="Paste your Anthropic API key to activate..."/>
+  <span class="api-label">🔑 Google Key</span>
+  <input class="api-input" type="password" id="apiKeyInput" placeholder="Paste your Google AI Studio API key here..."/>
   <button class="api-btn" onclick="saveKey()">Activate ✓</button>
 </div>
 
@@ -237,7 +237,7 @@ for(let i=0;i<55;i++) pts.push({x:Math.random()*window.innerWidth,y:Math.random(
 (function tick(){ctx.clearRect(0,0,canvas.width,canvas.height);pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${p.c},${p.a})`;ctx.fill();p.x+=p.dx;p.y+=p.dy;if(p.y<-5){p.y=canvas.height+5;p.x=Math.random()*canvas.width;}if(p.x<-5)p.x=canvas.width+5;if(p.x>canvas.width+5)p.x=-5;});requestAnimationFrame(tick);})();
 
 // Chat
-let apiKey=localStorage.getItem('selamai_k')||'';
+let apiKey=localStorage.getItem('selamai_g')||'';
 let history=[];
 let busy=false;
 const SYS=`You are Selam AI, a warm, intelligent, culturally proud Eritrean AI assistant. You specialize in Tigrinya language, Eritrean culture, history, geography, food, traditions, music, sports, and everyday topics.
@@ -262,9 +262,9 @@ if(apiKey) document.getElementById('apiSection').classList.add('hidden');
 function saveKey(){
   const k=document.getElementById('apiKeyInput').value.trim();
   if(!k)return;
-  apiKey=k; localStorage.setItem('selamai_k',k);
+  apiKey=k; localStorage.setItem('selamai_g',k);
   document.getElementById('apiSection').classList.add('hidden');
-  addBot('ሰላም! ብደሓን ምጻእ ናብ ሰላም AI!\n\n---\n\nWelcome! Selam AI is now fully activated! Ask me anything about Eritrea, Tigrinya, culture, history, food, or anything else. ሰናይ ሕቶ! (Ask away!)');
+  addBot('ሰላም! ብደሓን ምጻእ ናብ ሰላም AI!\n\n---\n\nWelcome! Selam AI is now fully activated with Google Gemini! Ask me anything about Eritrea, Tigrinya, culture, history, food, or anything else. ሰናይ ሕቶ! (Ask away!)');
 }
 function onInput(el){
   el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px';
@@ -292,7 +292,7 @@ function addUser(text){
 function addTyping(){
   const m=document.getElementById('messages');
   const d=document.createElement('div'); d.className='typing-wrap'; d.id='tEl';
-  d.innerHTML=`<div class="msg-av" style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,rgba(0,230,118,0.15),rgba(255,179,0,0.08));border:1px solid rgba(0,230,118,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;">🇪🇷</div><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  d.innerHTML=`<div class="msg-av" style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,rgba(0,230,118,0.15),rgba(255,179,0,0.08));border:1px solid rgba(0,230,118,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;">🌍</div><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
   m.appendChild(d); scroll();
 }
 function removeTyping(){ const t=document.getElementById('tEl'); if(t)t.remove(); }
@@ -304,15 +304,27 @@ function addBot(text){
     const p=text.split('---'); const ti=p[0].trim(); const en=p.slice(1).join('---').trim();
     bubble=`<span class="ti-text">${esc(ti)}</span><div class="divider"></div><span class="en-text">${esc(en)}</span>`;
   } else { bubble=esc(text); }
-  d.innerHTML=`<div class="msg-av">🇪🇷</div><div class="msg-body"><div class="msg-bubble">${bubble}</div><div class="msg-meta"><span class="msg-time">${now()}</span></div></div>`;
+  d.innerHTML=`<div class="msg-av">🌍</div><div class="msg-body"><div class="msg-bubble">${bubble}</div><div class="msg-meta"><span class="msg-time">${now()}</span></div></div>`;
   m.appendChild(d); scroll();
 }
 function clearChat(){
   history=[]; const m=document.getElementById('messages'); m.innerHTML='';
   const w=document.createElement('div'); w.className='welcome'; w.id='welcomeScreen';
-  w.innerHTML=`<div class="welcome-logo">🇪🇷</div><div class="welcome-title">Selam AI</div><div class="welcome-ti">ሰላም! ክሕግዘካ ድሉው እየ።</div><div class="welcome-desc">Your intelligent Eritrean AI companion. Ask me anything in English or Tigrinya!</div><div class="suggestions"><div class="suggestion" onclick="useSug(this)"><span class="sug-icon">🗣️</span><div class="sug-label">Language</div><div class="sug-text">How do I say "I love you" in Tigrinya?</div></div><div class="suggestion" onclick="useSug(this)"><span class="sug-icon">☕</span><div class="sug-label">Culture</div><div class="sug-text">Tell me about Eritrean coffee ceremony</div></div><div class="suggestion" onclick="useSug(this)"><span class="sug-icon">🏛️</span><div class="sug-label">History</div><div class="sug-text">When did Eritrea gain independence?</div></div><div class="suggestion" onclick="useSug(this)"><span class="sug-icon">🍽️</span><div class="sug-label">Food</div><div class="sug-text">What are traditional Eritrean dishes?</div></div></div>`;
+  w.innerHTML=`<div class="welcome-logo">🌍</div><div class="welcome-title">Selam AI</div><div class="welcome-ti">ሰላም! ክሕግዘካ ድሉው እየ።</div><div class="welcome-desc">Your intelligent Eritrean AI companion. Ask me anything in English or Tigrinya!</div><div class="suggestions"><div class="suggestion" onclick="useSug(this)"><span class="sug-icon">🗣️</span><div class="sug-label">Language</div><div class="sug-text">How do I say "I love you" in Tigrinya?</div></div><div class="suggestion" onclick="useSug(this)"><span class="sug-icon">☕</span><div class="sug-label">Culture</div><div class="sug-text">Tell me about Eritrean coffee ceremony</div></div><div class="suggestion" onclick="useSug(this)"><span class="sug-icon">🏛️</span><div class="sug-label">History</div><div class="sug-text">When did Eritrea gain independence?</div></div><div class="suggestion" onclick="useSug(this)"><span class="sug-icon">🍽️</span><div class="sug-label">Food</div><div class="sug-text">What are traditional Eritrean dishes?</div></div></div>`;
   m.appendChild(w);
 }
+
+// Build conversation for Gemini format
+function buildMessages(userText) {
+  const msgs = [];
+  // Add history
+  for(let i=0;i<history.length;i++){
+    msgs.push({role: history[i].role==='assistant'?'model':'user', parts:[{text:history[i].content}]});
+  }
+  msgs.push({role:'user', parts:[{text:userText}]});
+  return msgs;
+}
+
 async function send(){
   if(busy)return;
   const inp=document.getElementById('chatInput');
@@ -321,14 +333,33 @@ async function send(){
   inp.value=''; inp.style.height='auto';
   document.getElementById('langBadge').textContent='EN';
   document.getElementById('langBadge').className='lang-badge';
-  addUser(text); history.push({role:'user',content:text});
+  addUser(text);
   busy=true; document.getElementById('sendBtn').disabled=true; addTyping();
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1024,system:SYS,messages:history})});
+    const messages = buildMessages(text);
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        system_instruction:{parts:[{text:SYS}]},
+        contents: messages,
+        generationConfig:{maxOutputTokens:1024,temperature:0.7}
+      })
+    });
     const data=await res.json(); removeTyping();
-    if(data.error){ addBot('ጌጋ ኣጋጢሙ\n\n---\n\nError: '+(data.error.message||'Check your API key and try again.')); history.pop(); }
-    else{ const r=data.content[0].text; addBot(r); history.push({role:'assistant',content:r}); if(history.length>24)history=history.slice(-24); }
-  }catch(e){ removeTyping(); addBot('ምትእስሳር ሰናይ ኣይኮነን\n\n---\n\nConnection error. Please check your internet and API key, then try again.'); history.pop(); }
+    if(data.error){
+      addBot('ጌጋ ኣጋጢሙ\n\n---\n\nError: '+(data.error.message||'Check your Google API key and try again.'));
+    } else {
+      const r=data.candidates[0].content.parts[0].text;
+      addBot(r);
+      history.push({role:'user',content:text});
+      history.push({role:'assistant',content:r});
+      if(history.length>24)history=history.slice(-24);
+    }
+  }catch(e){
+    removeTyping();
+    addBot('ምትእስሳር ሰናይ ኣይኮነን\n\n---\n\nConnection error. Please check your internet and Google API key, then try again.');
+  }
   busy=false; document.getElementById('sendBtn').disabled=false; inp.focus();
 }
 </script>
